@@ -3,6 +3,8 @@ This is skeleton to an IRC bot that can engage in conversations.
 
 ## Example
 
+    from conversationbot import ConversationBot, Conversation
+
     class HelloConversation(Conversation):
 
         commands = ["hello",'hi']
@@ -29,9 +31,9 @@ This is skeleton to an IRC bot that can engage in conversations.
     hBot = HelloBot("HelloBot",         #nickname
                     "irc.freenode.net", #server
                     "#trew",            #channel
-                    6667)                #port
+                    6667)               #port
 
-    # Connect to the server/channel and start 
+    # Connect to the server/channel and start
     # listening to users.
     hBot.run()
 
