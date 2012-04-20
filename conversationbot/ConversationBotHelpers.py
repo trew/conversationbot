@@ -12,14 +12,16 @@ class ConversationBotFactory(protocol.ClientFactory):
     A new protocol instance will be created each time we connect to the server.
     """
 
-    def __init__(self, bot, client, nickname, channel):
-        self.client = client
+    def __init__(self, bot, clientclass, nickname, channel):
+        self.bot = bot
+        self.clientclass = clientclass
         self.nickname = nickname
         self.channel = channel
         self.conversations = bot.conversations
 
     def buildProtocol(self, addr):
-        p = self.client(self.conversations)
+        p = self.clientclass(self.conversations)
+        p.bot = self.bot
         p.factory = self
         return p
 

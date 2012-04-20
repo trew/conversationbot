@@ -20,14 +20,6 @@ class HelloBot(ConversationBot):
 
     conversations = [HelloConversation]
 
-    def __init__(self,nick,server,chan,port,loggingfile):
-        super(HelloBot, self).__init__(
-                    nick,
-                    server,
-                    chan,
-                    port,
-                    loggingfile)
-
 # Create a new bot
 hBot = HelloBot("HelloBot",         #nickname
                 "irc.freenode.net", #server

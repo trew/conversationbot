@@ -3,9 +3,10 @@ class Conversation(object):
 
     commands = []
 
-    def __init__(self, owner, user):
+    def __init__(self, client, user):
         # start conversation and dispatch to commands depending on msg
-        self.owner = owner
+        self.bot = client.bot
+        self.client = client
         self.user = user
         self._prev = None
         self._next = self.first # the first function to be called.
@@ -17,15 +18,15 @@ class Conversation(object):
         """
         Pass user on to the next part of this conversation
         """
-        if self in self.owner.active_conversations:
+        if self in self.client.active_conversations:
             if hasattr(self.next_call, '__call__'): # == if self.next_ is a function:
                 self.next_call = None #set it to none, but self.prev_ is still saved.
                 response = self._prev(msg)
                 if self.next_call is None:
-                    self.owner.end_conversation(self)
+                    self.client.end_conversation(self)
                 return response
             else:
-                self.owner.end_conversation(self)
+                self.client.end_conversation(self)
                 return "I'm sorry, there is an unexpected error in the code that runs me. :-("
         else:
             return "This is not an open conversation, I wonder how you got here. ^_^"
