@@ -1,7 +1,7 @@
 from ConversationBotHelpers import ConversationBotFactory, ConversationBotClient
 from twisted.internet import reactor
 from twisted.python import log
-
+from twisted.python.logfile import LogFile
 import sys
 
 class Conversation(object):
@@ -55,16 +55,15 @@ class ConversationBot(object):
     They are tied together with ConversationBotFactory and ConversationBotClient.
     """
 
-    def __init__(self, nick, server, channel, port, logger=None):
+    def __init__(self, nick, server, channel, port, loggingfile=None):
         self.server = server
         self.port = port
 
-        if logger is not None:
-            log.startLogging(logger.file)
+        if loggingfile is not None:
+            log.startLogging(LogFile.fromFullPath(loggingfile))
         self.factory = ConversationBotFactory(self, ConversationBotClient,
                                               nick,
-                                              channel,
-                                              logger)
+                                              channel)
 
     def run(self):
         reactor.connectTCP(self.server, self.port, self.factory)

@@ -12,15 +12,14 @@ class ConversationBotFactory(protocol.ClientFactory):
     A new protocol instance will be created each time we connect to the server.
     """
 
-    def __init__(self, bot, client, nickname, channel, logger=None):
+    def __init__(self, bot, client, nickname, channel):
         self.client = client
         self.nickname = nickname
         self.channel = channel
         self.conversations = bot.conversations
-        self.logger = logger
 
     def buildProtocol(self, addr):
-        p = self.client(self.conversations, self.logger)
+        p = self.client(self.conversations)
         p.factory = self
         return p
 
@@ -35,10 +34,9 @@ class ConversationBotFactory(protocol.ClientFactory):
 
 class ConversationBotClient(irc.IRCClient):
 
-    def __init__(self, conversations, logger=None):
+    def __init__(self, conversations):
         self.possible_conversations = conversations
         self.active_conversations = []
-        self.logger = logger
 
     def find_conversation(self, user):
         for c in self.active_conversations:
@@ -79,12 +77,6 @@ class ConversationBotClient(irc.IRCClient):
     def end_conversation(self, conversation):
         self.active_conversations.remove(conversation)
 
-
-    def log(self, msg):
-        if self.logger is not None:
-            self.logger.log(msg)
-
-
     @property
     def nickname(self):
         return self.factory.nickname
@@ -94,11 +86,11 @@ class ConversationBotClient(irc.IRCClient):
         Called when the bot has connected to the server.
         """
         irc.IRCClient.connectionMade(self)
-        self.log("[ChallongeBot(%s) connected]" % self.nickname)
+        log.msg("[ChallongeBot(%s) connected]" % self.nickname)
 
     def connectionLost(self, reason):
         irc.IRCClient.connectionLost(self, reason)
-        self.log("[ChallongeBot(%s) disconnected]" % self.nickname)
+        log.msg("[ChallongeBot(%s) disconnected]" % self.nickname)
 
 
     # callbacks for events
@@ -109,7 +101,7 @@ class ConversationBotClient(irc.IRCClient):
 
     def joined(self, channel):
         """Called when the bot joins the channel."""
-        self.log("[I have joined %s]" % channel)
+        log.msg("[I have joined %s]" % channel)
 
     def privmsg(self, username, channel, msg):
         """This will get called when the bot receives a message."""
@@ -119,7 +111,7 @@ class ConversationBotClient(irc.IRCClient):
             return
 
         user = username.split('!', 1)[0]
-        self.log("<%s> %s" % (user, msg))
+        log.msg("<%s> %s" % (user, msg))
 
         conversation = self.find_conversation(user)
         if conversation is None:
@@ -127,61 +119,29 @@ class ConversationBotClient(irc.IRCClient):
         else:
             response = conversation.call(msg)
         self.msg(user, response)
-        self.log("<%s> to <%s>: %s" % (self.nickname, user, response))
+        log.msg("<%s> to <%s>: %s" % (self.nickname, user, response))
 
     def action(self, user, channel, msg):
         """This will get called when the bot sees someone do an action."""
         user = user.split('!', 1)[0]
-        self.log("* %s %s" % (user, msg))
+        log.msg("* %s %s" % (user, msg))
 
     def userKicked(self, kickee, channel, kicker, message):
         """Called when the bot observe someone else being kicked from a channel"""
         user = user.split('!', 1)[0]
-        self.log("%s has been kicked by %s. Message: %s.") % (kickee, kicker, message)
+        # TODO end all conversations with this user.
+        log.msg("%s has been kicked by %s. Message: %s.") % (kickee, kicker, message)
 
     def userLeft(self, user, channel):
         """Called when the bot see another user leaving the channel"""
+        # TODO end all conversations with this user.
         user = user.split('!', 1)[0]
-        self.log("%s has left the channel." % user)
+        log.msg("%s has left the channel." % user)
 
     def userRenamed(self, oldname, newname):
         """A user changed their name from oldname to newname"""
+        # TODO change the nick of any open conversation with this user
         oldname = oldname.split('!', 1)[0]
         newname = newname.split('!', 1)[0]
-        self.log("%s is now known as %s" % (oldname, newname))
-
-
-
-def parse_args():
-    """
-    Parses sys.argv when program starts from __main__.
-    """
-    import argparse
-    parser = argparse.ArgumentParser(description="Arguments for the Challonge IRC Bot")
-    parser.add_argument("-n", "--nickname", type=str, help="Nickname to connect with. (Default:\"challongeBot\")", default="challongeBot")
-    parser.add_argument("-c", "--channel", type=str, help="Channel to connect to. (wrapped in quotation marks(\") and including '#')", required=True)
-    parser.add_argument("-s", "--server", type=str, help="Server to connect to. (Default:\"irc.freenode.net\")", default="irc.freenode.net")
-    parser.add_argument("-p", "--port", type=int, help="Port to connect with. (Default:\"6667\")", default=6667)
-
-    args = vars(parser.parse_args())
-
-    nickname = args['nickname']
-    channel = args['channel']
-    server = args['server']
-    port = args['port']
-
-    print "Setting up challonge IRC Bot with settings: \n"\
-          "    Nickname: %s\n"\
-          "    Channel : %s\n"\
-          "    Server  : %s\n"\
-          "    Port    : %s\n" % (nickname, channel, server, port)
-    return nickname, channel, server, port
-
-
-if __name__ == '__main__':
-
-    # parse the command line and initialize
-    nickname, channel, server, port = parse_args()
-
-    # initialize logging
+        log.msg("%s is now known as %s" % (oldname, newname))
 
