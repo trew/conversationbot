@@ -74,7 +74,7 @@ class ConversationBotClient(irc.IRCClient):
             if cmd in c.commands:
                 new_conversation = c(self, user)
                 self.active_conversations.append(new_conversation)
-                return new_conversation.call(msg)
+                return new_conversation.call(rest)
 
     def end_conversation(self, conversation):
         self.active_conversations.remove(conversation)
