@@ -77,6 +77,7 @@ class ConversationBotClient(irc.IRCClient):
     def end_conversation(self, conversation):
         self.active_conversations.remove(conversation)
 
+
     @property
     def nickname(self):
         return self.factory.nickname
@@ -129,19 +130,25 @@ class ConversationBotClient(irc.IRCClient):
     def userKicked(self, kickee, channel, kicker, message):
         """Called when the bot observe someone else being kicked from a channel"""
         user = user.split('!', 1)[0]
-        # TODO end all conversations with this user.
+        for c in self.active_conversations:
+            if c.user == user:
+                self.end_conversation(c)
         log.msg("%s has been kicked by %s. Message: %s.") % (kickee, kicker, message)
 
     def userLeft(self, user, channel):
         """Called when the bot see another user leaving the channel"""
-        # TODO end all conversations with this user.
         user = user.split('!', 1)[0]
+        for c in self.active_conversations:
+            if c.user == user:
+                self.end_conversation(c)
         log.msg("%s has left the channel." % user)
 
     def userRenamed(self, oldname, newname):
         """A user changed their name from oldname to newname"""
-        # TODO change the nick of any open conversation with this user
         oldname = oldname.split('!', 1)[0]
         newname = newname.split('!', 1)[0]
+        for c in self.active_conversations:
+            if c.user == oldname:
+                c.user = newname
         log.msg("%s is now known as %s" % (oldname, newname))
 
