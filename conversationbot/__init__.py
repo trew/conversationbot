@@ -4,6 +4,8 @@ from twisted.python import log
 from twisted.python.logfile import LogFile
 import sys
 
+__version__ = '1.0'
+
 class Conversation(object):
 
     commands = []
